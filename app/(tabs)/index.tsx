@@ -1,75 +1,163 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { AntDesign } from "@expo/vector-icons";
+import { useTheme } from "@react-navigation/native";
+import { router } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import DraggableFlatList, {
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Card, useCardContext } from "../../utils/CardContext";
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
+  const { cards, setCards } = useCardContext();
+
+  const [localCards, setLocalCards] = useState<Card[]>(cards);
+
+  // Sync context to local state on load or update
+  useEffect(() => {
+    setLocalCards(cards);
+  }, [cards]);
+
+  const handleAddCard = useCallback(() => {
+    router.push("/EditLink");
+  }, []);
+
+  const handleCardPress = useCallback((card: Card, index: number) => {
+    router.push({
+      pathname: "/Details",
+      params: { card: JSON.stringify(card), index: index.toString() },
+    });
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item, drag, getIndex }: RenderItemParams<Card>) => {
+      const index = getIndex?.();
+      if (index === undefined) return null;
+
+      return (
+        <Pressable
+          onPress={() => handleCardPress(item, index)}
+          onLongPress={drag}
+          style={[styles.card, { backgroundColor: colors.card }]}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {item.name}
+            </Text>
+            {item.label && (
+              <View
+                style={[
+                  styles.labelBadge,
+                  { backgroundColor: item.labelColor || "#6495ed" },
+                ]}
+              >
+                <Text style={styles.labelText}>{item.label}</Text>
+              </View>
+            )}
+          </View>
+          <Text
+            style={[styles.cardUrl, { color: colors.text }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.url}
+          </Text>
+        </Pressable>
+      );
+    },
+    [colors, handleCardPress],
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {localCards.length === 0 && (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: colors.text }]}>
+            You haven&apos;t added any cards yet. Tap the + button below to add
+            one.
+          </Text>
+        </View>
+      )}
+
+      <DraggableFlatList
+        data={localCards}
+        onDragEnd={({ data }) => {
+          setLocalCards(data); // update UI
+          setCards(data); // persist to context & AsyncStorage
+        }}
+        keyExtractor={(item) => item.id} // ✅ stable key
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 16 }}
+      />
+
+      <Pressable style={styles.fab} onPress={handleAddCard}>
+        <AntDesign name="plus" size={24} color="white" />
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    position: "relative",
   },
-  stepContainer: {
-    gap: 8,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32,
+  },
+  emptyText: {
+    fontSize: 18,
+    textAlign: "center",
+    opacity: 0.7,
+  },
+  card: {
+    backgroundColor: "#f5f5f5",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  cardTitle: {
+    fontSize: 36,
+    fontWeight: "600",
+  },
+  cardUrl: {
+    fontSize: 18,
+    color: "#555",
+    marginTop: 4,
+  },
+  fab: {
+    position: "absolute",
+    right: 24,
+    bottom: 24,
+    backgroundColor: "#6495ed",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+  },
+  labelBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  labelText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

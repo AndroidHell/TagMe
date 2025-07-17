@@ -1,0 +1,19 @@
+/app
+  ├── _layout.tsx            <-- Wrap app with CardProvider here
+  ├── EditLink.tsx           <-- Add/Edit card screen
+  ├── Details.tsx            <-- Full-screen QR viewer
+  └── (tabs)
+      ├── _layout.tsx        <-- Bottom tabs config (optional)
+      ├── index.tsx          <-- Home screen (QR list)
+      └── settings.tsx       <-- Placeholder for app settings
+/utils
+  └── CardContext.tsx        <-- Your global card state logic
+
+
+- fix need to multiple click when selecting buttons on edit screen
+
+
+build local apk
+eas build --platform android --profile preview --local
+install
+adb install "name-of-app".apk

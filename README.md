@@ -1,4 +1,11 @@
-# Welcome to your Expo app 👋
+# Tag Me Business Socials Link app
+
+This was meant to be a clone of the Dot business card but as a FOSS solution.
+But I ran into an issue trying to implement the NFC functionality. Turns out one of the coolest features in modern tech is still locked behind a superficial wall and we can't have nice things. NFC functionality only works with Android via tags and not directly with phone to phone anymore.
+
+So the end result is just a way to store socialis as a list of cards, and clicking on th cards opens a QR code that can be scanned. The usecase is that everyone has a phone with a camera that supports QR codes so this makes it easier still and less record keeping.
+
+## Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
