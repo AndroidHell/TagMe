@@ -11,9 +11,20 @@
 
 
 - fix need to multiple click when selecting buttons on edit screen
+- create aab package from expo and put on store
+
+// add this to eas.json when building local to test apk
+"production": {
+  "android": {
+    "buildType": "apk"
+  },
+  "autoIncrement": true
+}
 
 
-build local apk
+// build local apk
 eas build --platform android --profile preview --local
-install
+// install
 adb install "name-of-app".apk
+
+
